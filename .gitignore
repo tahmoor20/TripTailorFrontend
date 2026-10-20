@@ -40,3 +40,4 @@ app-example
 # secrets and local env files
 .env
 .env.*
+!.env.example

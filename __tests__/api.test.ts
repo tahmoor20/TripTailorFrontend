@@ -9,10 +9,12 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 jest.mock('axios', () => ({
   __esModule: true,
   default: {
+    // The client is created when services/api is imported, before the mock
+    // functions above exist, so look them up lazily at call time.
     create: () => ({
-      get: mockGet,
-      post: mockPost,
-      put: mockPut,
+      get: (...args: unknown[]) => mockGet(...args),
+      post: (...args: unknown[]) => mockPost(...args),
+      put: (...args: unknown[]) => mockPut(...args),
       interceptors: { request: { use: jest.fn() } },
     }),
     isAxiosError: (error: any) => Boolean(error && error.isAxiosError),

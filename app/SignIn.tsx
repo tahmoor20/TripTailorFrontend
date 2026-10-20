@@ -1,32 +1,18 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiErrorMessage, signIn } from '../services/api';
+import { validateSignIn, type FormErrors } from '../utils/validation';
 
 const SignInScreen = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<FormErrors>({});
     const router = useRouter();
 
     const validateForm = () => {
-        const newErrors = {};
-
-        // Email Validation
-        if (!email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        // Password Validation
-        if (!password.trim()) {
-            newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
-
+        const newErrors = validateSignIn({ email, password });
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -35,18 +21,14 @@ const SignInScreen = () => {
         if (!validateForm()) {
             return;
         }
-    
+
         try {
-            const response = await axios.post('http://localhost:5000/api/signin', { email, password });
-            await AsyncStorage.setItem('token', response.data.token);
-            await AsyncStorage.setItem('fullName', response.data.fullName); // User ka name save karein
+            const { token, fullName } = await signIn(email.trim(), password);
+            await AsyncStorage.setItem('token', token);
+            await AsyncStorage.setItem('fullName', fullName); // Saved to greet the user on the home screen
             router.push('/');
         } catch (error) {
-            if (error.response && error.response.data && error.response.data.message) {
-                setErrors({ ...errors, accountError: error.response.data.message });
-            } else {
-                setErrors({ ...errors, accountError: 'An error occurred. Please try again.' });
-            }
+            setErrors({ accountError: getApiErrorMessage(error) });
         }
     };
 

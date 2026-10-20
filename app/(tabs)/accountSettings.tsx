@@ -51,7 +51,10 @@ export default function AccountSettings() {
 
       {/* Profile Section */}
       <View style={styles.profileSection}>
-        <Image source={{ uri: user.profileImage || require('../../assets/images/paris.jpg') }} style={styles.profileImage} />
+        <Image
+          source={user.profileImage ? { uri: user.profileImage } : require('../../assets/images/paris.jpg')}
+          style={styles.profileImage}
+        />
         <Text style={styles.profileName}>{user.fullName}</Text>
       </View>
 

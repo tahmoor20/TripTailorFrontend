@@ -128,7 +128,8 @@ const MultiStepForm = () => {
   };
 
   // Date handling functions
-  const handleFromDateChange = (date: Date) => {
+  const handleFromDateChange = (date: Date | null) => {
+    if (!date) return;
     setTempFromDate(date);
     setFromDate(format(date, 'dd/MM/yyyy'));
     if (date > tempToDate) {
@@ -137,7 +138,8 @@ const MultiStepForm = () => {
     }
   };
 
-  const handleToDateChange = (date: Date) => {
+  const handleToDateChange = (date: Date | null) => {
+    if (!date) return;
     setTempToDate(date);
     setToDate(format(date, 'dd/MM/yyyy'));
   };

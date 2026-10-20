@@ -11,6 +11,7 @@ const ProfileScreen = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [image, setImage] = useState<string | null>(null);
+  const [imageChanged, setImageChanged] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -40,6 +41,7 @@ const ProfileScreen = () => {
 
     if (!result.canceled) {
       setImage(result.assets[0].uri);
+      setImageChanged(true);
     }
   };
 
@@ -49,7 +51,8 @@ const ProfileScreen = () => {
       const formData = new FormData();
       formData.append('fullName', name);
       formData.append('phoneNumber', phone);
-      if (image) {
+      // Only upload when the user picked a new picture, not the one the server already has.
+      if (image && imageChanged) {
         const localUri = image;
         const filename = localUri.split('/').pop();
         const match = /\.(\w+)$/.exec(filename);
@@ -61,6 +64,7 @@ const ProfileScreen = () => {
         const updated = await updateUser(formData);
         alert('Changes Saved!');
         setImage(updated.profileImage ?? null);
+        setImageChanged(false);
       } catch (error) {
         console.error('Error updating user data:', error);
       }

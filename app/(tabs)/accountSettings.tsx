@@ -2,24 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, Modal, Pressable } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUser } from '../../services/api';
+import type { User } from '../../types';
 
 export default function AccountSettings() {
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [modalText, setModalText] = useState('');
-  const [user, setUser] = useState({ fullName: '', profileImage: '' });
+  const [user, setUser] = useState<Pick<User, 'fullName' | 'profileImage'>>({ fullName: '', profileImage: '' });
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = await AsyncStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5000/api/user', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUser(response.data);
+          setUser(await getUser());
         } catch (error) {
           console.error('Error fetching user data:', error);
         }

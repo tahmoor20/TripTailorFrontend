@@ -1,46 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApiErrorMessage, signUp } from '../services/api';
+import { validateSignUp, type FormErrors } from '../utils/validation';
 
 const SignUpScreen = () => {
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState({});
+    const [errors, setErrors] = useState<FormErrors>({});
     const router = useRouter();
 
     const validateForm = () => {
-        const newErrors = {};
-
-        // Full Name Validation
-        if (!fullName.trim()) {
-            newErrors.fullName = 'Full Name is required';
-        }
-
-        // Email Validation
-        if (!email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/\S+@\S+\.\S+/.test(email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        // Phone Number Validation
-        if (!phoneNumber.trim()) {
-            newErrors.phoneNumber = 'Phone Number is required';
-        } else if (!/^\d+$/.test(phoneNumber)) {
-            newErrors.phoneNumber = 'Phone Number should contain only numbers';
-        }
-
-        // Password Validation
-        if (!password.trim()) {
-            newErrors.password = 'Password is required';
-        } else if (password.length < 6) {
-            newErrors.password = 'Password must be at least 6 characters';
-        }
-
+        const newErrors = validateSignUp({ fullName, email, phoneNumber, password });
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -51,16 +25,17 @@ const SignUpScreen = () => {
         }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/signup', {
-                fullName,
-                email,
-                phoneNumber,
+            const response = await signUp({
+                fullName: fullName.trim(),
+                email: email.trim(),
+                phoneNumber: phoneNumber.trim(),
                 password,
             });
-            await AsyncStorage.setItem('token', response.data.token);
+            await AsyncStorage.setItem('token', response.token);
+            await AsyncStorage.setItem('fullName', response.fullName);
             router.push('/');
         } catch (error) {
-            Alert.alert('Error', 'Failed to sign up');
+            Alert.alert('Error', getApiErrorMessage(error, 'Failed to sign up'));
         }
     };
 

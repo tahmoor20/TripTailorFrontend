@@ -3,26 +3,24 @@ import { View, TextInput, TouchableOpacity, Image, Text, StyleSheet } from "reac
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUser, updateUser } from '../../services/api';
 
 const ProfileScreen = () => {
   const router = useRouter();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [image, setImage] = useState(null);
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const token = await AsyncStorage.getItem('token');
       if (token) {
         try {
-          const response = await axios.get('http://localhost:5000/api/user', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setName(response.data.fullName);
-          setPhone(response.data.phoneNumber);
-          setImage(response.data.profileImage);
+          const user = await getUser();
+          setName(user.fullName);
+          setPhone(user.phoneNumber);
+          setImage(user.profileImage ?? null);
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
@@ -56,18 +54,13 @@ const ProfileScreen = () => {
         const filename = localUri.split('/').pop();
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : `image`;
-        formData.append('profileImage', { uri: localUri, name: filename, type });
+        formData.append('profileImage', { uri: localUri, name: filename, type } as unknown as Blob);
       }
   
       try {
-        const response = await axios.put('http://localhost:5000/api/user', formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        });
+        const updated = await updateUser(formData);
         alert('Changes Saved!');
-        setImage(response.data.profileImage);
+        setImage(updated.profileImage ?? null);
       } catch (error) {
         console.error('Error updating user data:', error);
       }

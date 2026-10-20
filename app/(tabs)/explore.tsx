@@ -15,25 +15,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { format, parse } from 'date-fns';
-import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-
-interface City {
-  _id: string;
-  name: string;
-  imageUrl: string;
-  description?: string;
-}
-
-interface ItineraryData {
-  destination: string;
-  fromDate: string;
-  toDate: string;
-  companion: string;
-  interests: string[];
-  itinerary: string;
-}
+import { generateItinerary, getApiErrorMessage, getRandomCities } from '../../services/api';
+import type { City, ItineraryData } from '../../types';
 
 const MultiStepForm = () => {
   const router = useRouter();
@@ -53,8 +38,7 @@ const MultiStepForm = () => {
   const fetchRandomCities = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/formcities/random');
-      setRandomCities(response.data);
+      setRandomCities(await getRandomCities());
     } catch (error) {
       console.error('Error fetching cities:', error);
       Alert.alert('Error', 'Failed to load cities. Please try again.');
@@ -112,14 +96,11 @@ const MultiStepForm = () => {
         budget: "medium" 
       };
 
-      const response = await axios.post(
-        'http://localhost:5000/api/generate-itinerary', 
-        formData
-      );
+      const itinerary = await generateItinerary(formData);
 
       const itineraryData: ItineraryData = { 
         ...formData, 
-        itinerary: response.data.itinerary,
+        itinerary,
         fromDate: format(tempFromDate, 'dd/MM/yyyy'), // For display
         toDate: format(tempToDate, 'dd/MM/yyyy')     // For display
       };
@@ -130,7 +111,7 @@ const MultiStepForm = () => {
       });
     } catch (error) {
       console.error('Error generating itinerary:', error);
-      Alert.alert('Error', 'Failed to generate itinerary. Please try again.');
+      Alert.alert('Error', getApiErrorMessage(error, 'Failed to generate itinerary. Please try again.'));
     } finally {
       setSubmitting(false);
     }

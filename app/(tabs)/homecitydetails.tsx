@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons'; // Import Ionicons for the "X" icon
+import type { City } from '../../types';
 
 const CityDetailsScreen = () => {
-    const { city } = useLocalSearchParams();
-    const parsedCity = JSON.parse(city);
+    const { city } = useLocalSearchParams<{ city: string }>();
+    const parsedCity: City = JSON.parse(city);
     const [selectedDay, setSelectedDay] = useState(1);
     const router = useRouter();
 
-    const handleDayPress = (day) => {
+    const handleDayPress = (day: number) => {
         setSelectedDay(day);
         // Scroll to the selected day
         const element = document.getElementById(`day-${day}`);

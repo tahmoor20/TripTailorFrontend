@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import axios from 'axios';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCities } from '../../services/api';
+import type { City } from '../../types';
 
 export default function HomeScreen() {
-    const [cities, setCities] = useState([]);
+    const [cities, setCities] = useState<City[]>([]);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [fullName, setFullName] = useState('');
     const router = useRouter();
@@ -29,14 +30,13 @@ export default function HomeScreen() {
 
     const fetchCities = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/api/cities');
-            setCities(response.data);
+            setCities(await getCities());
         } catch (error) {
             console.error(error);
         }
     };
 
-    const handleCityPress = (city) => {
+    const handleCityPress = (city: City) => {
         router.push({
             pathname: '/homecitydetails',
             params: { city: JSON.stringify(city) },

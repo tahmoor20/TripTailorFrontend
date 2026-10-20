@@ -54,7 +54,7 @@ const ProfileScreen = () => {
       // Only upload when the user picked a new picture, not the one the server already has.
       if (image && imageChanged) {
         const localUri = image;
-        const filename = localUri.split('/').pop();
+        const filename = localUri.split('/').pop() ?? 'profile-image.jpg';
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : `image`;
         formData.append('profileImage', { uri: localUri, name: filename, type } as unknown as Blob);
